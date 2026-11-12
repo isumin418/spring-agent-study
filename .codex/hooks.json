@@ -1,0 +1,18 @@
+{
+  "description": "Run scripts/check-architecture.ps1 to check ArchUnit rules when a Codex turn stops.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File scripts/check-architecture.ps1",
+            "commandWindows": "powershell.exe -NoProfile -File scripts/check-architecture.ps1",
+            "timeout": 300,
+            "statusMessage": "Running ArchUnit"
+          }
+        ]
+      }
+    ]
+  }
+}
