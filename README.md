@@ -1,17 +1,19 @@
 # spring-agent-study
 
-게시글 작성 API로 클린 아키텍처의 패키지 경계를 실습한다. Markdown에 작업 규칙과 설계를 기록하고, Codex Skill로 변경 절차를 안내한다. ArchUnit과 Hook으로 코드가 설계 방향을 따르는지 검사한다.
+게시글 작성·목록 조회 API로 클린 아키텍처의 패키지 경계를 실습한다. Markdown에 작업 규칙과 설계를 기록하고, Codex Skill로 작성 API의 변경 절차를 안내한다. OpenSpec으로 목록 조회 계약을 관리하고, ArchUnit과 Hook으로 코드가 설계 방향을 따르는지 검사한다.
 
 ## 패키지 구조
 
 | 패키지 | 열어볼 클래스 | 역할 |
 | --- | --- | --- |
 | `domain` | `Post` | 게시글 값 |
-| `application` | `CreatePostUseCase`, `CreatePost`, `PostRepository` | 입력 포트, 작성 구현, 출력 포트 |
-| `adapter.web` | `PostController` | HTTP 요청 검증과 응답 |
-| `adapter.persistence` | `InMemoryPostRepository` | ID 발급과 인메모리 저장 |
+| `application` | `CreatePostUseCase`, `CreatePost`, `ListPostsUseCase`, `ListPosts`, `PostRepository` | 작성·조회 입력 포트와 구현, 저장소 출력 포트 |
+| `adapter.web` | `PostController` | 게시글 작성 요청 검증과 작성·조회 응답 |
+| `adapter.persistence` | `InMemoryPostRepository` | ID 발급과 인메모리 저장·조회 |
 
 `POST /posts`의 JSON 예시는 `{"title":"첫 글","content":"안녕하세요"}`다. 컨트롤러가 누락, 빈 문자열, 공백만 있는 입력을 검사해 400으로 응답한다. 유효하면 `PostController → CreatePostUseCase → CreatePost → PostRepository → InMemoryPostRepository` 순서로 호출한다. Spring이 연결한 인메모리 저장소가 ID를 발급해 저장하면 HTTP 201과 `id`, `title`, `content`가 반환된다. 애플리케이션을 종료하면 저장된 글은 사라진다.
+
+`GET /posts`는 HTTP 200과 `id`, `title`, `content`를 담은 JSON 배열을 ID 오름차순으로 반환한다. 저장된 글이 없으면 `[]`를 반환한다. [목록 조회 명세](openspec/specs/post-list/spec.md)
 
 ## 실행과 테스트
 
@@ -32,7 +34,7 @@ $env:ORG_GRADLE_PROJECT_buildOutput = Join-Path $env:LOCALAPPDATA 'SpringBootCle
 
 기본 테스트 보고서는 [Gradle HTML 리포트](build/reports/tests/test/index.html)에 생성된다. 출력 경로를 바꿨다면 그 경로 아래의 `reports/tests/test/index.html`을 연다. `PostControllerTest`는 Spring MVC를 통해 201 및 400 응답을 확인한다. `ArchitectureTest`는 [아키텍처 문서](docs/architecture.md)의 의존성 규칙 네 가지를 검사한다.
 
-전체 테스트는 API 9개와 ArchUnit 4개로 구성된다.
+전체 테스트는 작성 API 9개, 목록 조회 API 2개, ArchUnit 4개로 구성된다. `ListPostsControllerTest`는 빈 목록과 ID 오름차순 응답을 확인한다.
 
 이전 검증에서 임시 사본의 `CreatePost`와 `PostController`에 `InMemoryPostRepository` 직접 참조를 각각 추가하자 두 사본 모두 컴파일과 API 테스트는 통과했고, 각각 2번과 3번 ArchUnit 규칙만 실패했다.
 

@@ -1,5 +1,6 @@
 package study.posts.adapter.persistence;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,5 +18,10 @@ public class InMemoryPostRepository implements PostRepository {
         Post post = new Post(sequence.incrementAndGet(), title, content);
         posts.put(post.id(), post);
         return post;
+    }
+
+    @Override
+    public List<Post> findAll() {
+        return List.copyOf(posts.values());
     }
 }

@@ -5,6 +5,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import study.posts.application.CreatePostUseCase;
+import study.posts.application.ListPostsUseCase;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -28,12 +29,12 @@ class ArchitectureTest {
     static final ArchRule webDoesNotDependOnPersistence = noClasses()
             .that().resideInAPackage("study.posts.adapter.web..")
             .should().dependOnClassesThat().resideInAPackage("study.posts.adapter.persistence..")
-            .because("the controller delegates post creation to the application use case");
+            .because("the controller delegates post operations to application use cases");
 
     @ArchTest
-    static final ArchRule webUsesOnlyInputPortFromApplication = noClasses()
+    static final ArchRule webUsesOnlyInputPortsFromApplication = noClasses()
             .that().resideInAPackage("study.posts.adapter.web..")
             .should().dependOnClassesThat(resideInAPackage("study.posts.application..")
-                    .and(not(equivalentTo(CreatePostUseCase.class))))
-            .because("the web adapter depends on the post creation input port");
+                    .and(not(equivalentTo(CreatePostUseCase.class).or(equivalentTo(ListPostsUseCase.class)))))
+            .because("the web adapter depends on the post creation and listing input ports");
 }
